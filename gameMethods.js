@@ -5,7 +5,7 @@ const startGame = (rows, cols) => {
 
 // Matrix methods
 const generateMatrix = (rows, cols) => {
-  let matrix = [];
+  const matrix = [];
   for (let i = 0; i < rows; i++) {
     matrix[i] = Array(cols);
     for (let j = 0; j < cols; j++) {
@@ -22,20 +22,18 @@ const fillInitalMatrix = (i, j, cols, rows) => {
   const baseCellPropieties = getBaseCellPropieties(i, j);
 
   if ((i == 0 || i == 2) && isOddCol) {
-    return { ...baseCellPropieties, isEmpty: false, isFilledWithPlayerOne: true }
+    return { ...baseCellPropieties, isEmpty: false, isFilledWithPlayerOne: true };
+  } if ((i == 1) && isEvenCol) {
+    return { ...baseCellPropieties, isEmpty: false, isFilledWithPlayerOne: true };
   }
-  else if ((i == 1) && isEvenCol) {
-    return { ...baseCellPropieties, isEmpty: false, isFilledWithPlayerOne: true }
+  if ((i == rows - 1 || i == rows - 3) && isEvenCol) {
+    return { ...baseCellPropieties, isEmpty: false, isFilledWithPlayertwo: true };
   }
-  else if ((i == rows - 1 || i == rows - 3) && isEvenCol) {
-    return { ...baseCellPropieties, isEmpty: false, isFilledWithPlayertwo: true }
+  if ((i == rows - 2) && isOddCol) {
+    return { ...baseCellPropieties, isEmpty: false, isFilledWithPlayertwo: true };
   }
-  else if ((i == rows - 2) && isOddCol) {
-    return { ...baseCellPropieties, isEmpty: false, isFilledWithPlayertwo: true }
-  }
-  else {
-    return baseCellPropieties;
-  }
+
+  return baseCellPropieties;
 };
 
 
@@ -49,26 +47,28 @@ const getBaseCellPropieties = (row, col) => ({
   isPressed: false,
 });
 
-const getCellPropieties = (mx, row, col) => {
-  return mx[row][col];
-};
+const getCellPropieties = (mx, row, col) => mx[row][col];
+
 const setCellPropieties = (mx, cellPropieties) => {
   const { row, col } = cellPropieties;
-  mx[row][col] = cellPropieties;
-  return mx;
-}
+  const newMatrix = [...mx];
+  newMatrix[row][col] = cellPropieties;
+  return newMatrix;
+};
 const setCellsPropieties = (mx, cellsPropieties) => {
-  cellsPropieties.forEach(cellProps => {
+  const newMatrix = [...mx];
+  cellsPropieties.forEach((cellProps) => {
     const { row, col } = cellProps;
-    mx[row][col] = cellProps
-  })
-  return mx;
-}
+    newMatrix[row][col] = cellProps;
+  });
+  return newMatrix;
+};
 
 const setAttempToMove = (mx, row, col, cellPropieties) => {
   const newCellPropieties = { ...cellPropieties, isPressed: true };
-  mx[row][col] = newCellPropieties;
-  return mx;
+  const newMatrix = [...mx];
+  newMatrix[row][col] = newCellPropieties;
+  return newMatrix;
 };
 
 // Rules methods
@@ -77,19 +77,42 @@ const checkValidMove = (cellPropietiesStart, cellPropietiesEnd, turn) => {
   const isDiagonalMove = checkDiagonalMove(cellPropietiesStart, cellPropietiesEnd);
   const isCorrectTurn = checkPlayerTurn(cellPropietiesStart, turn);
 
-  return isNotEmptyCellEnd && isDiagonalMove && isCorrectTurn
+  return isNotEmptyCellEnd && isDiagonalMove && isCorrectTurn;
 };
 
-const checkDiagonalMove = (startProps, endProps) => {
-  const isDiagonalRigthBottomMove = startProps.col - 1 == endProps.col && startProps.row + 1 == endProps.row;
-  const isDiagonalLeftBottomMove = startProps.col + 1 == endProps.col && startProps.row + 1 == endProps.row;
-  const isDiagonalRigthTopMove = startProps.col + 1 == endProps.col && startProps.row - 1 == endProps.row;
-  const isDiagonalLeftTopMove = startProps.col - 1 == endProps.col && startProps.row - 1 == endProps.row;
+const checkDiagonalMove = (startProps, endProps, isDobleUnder = false) => {
+  const incremental = isDobleUnder ? 2 : 1;
+
+  const isDiagonalRigthBottomMove = startProps.col - incremental == endProps.col
+    && startProps.row + incremental == endProps.row;
+  const isDiagonalLeftBottomMove = startProps.col + incremental == endProps.col
+    && startProps.row + incremental == endProps.row;
+  const isDiagonalRigthTopMove = startProps.col + incremental == endProps.col
+    && startProps.row - incremental == endProps.row;
+  const isDiagonalLeftTopMove = startProps.col - incremental == endProps.col
+    && startProps.row - incremental == endProps.row;
 
   return startProps.isFilledWithPlayerOne
     ? isDiagonalRigthBottomMove || isDiagonalLeftBottomMove
     : isDiagonalRigthTopMove || isDiagonalLeftTopMove;
-}
+};
+
+const checkIsValidDobleUnder = (startProps, endProps, matrix, turn) => {
+  // const { playerOne, platerTwo } = turn;
+  // let intermedialCell;
+
+  // if (playerOne) {
+  //   intermedialCell = {
+
+  //   }
+  // }
+  // const intermedialCell = {
+  //   row: startProps.row - endProps.row,
+  //   col: startProps.col - endProps.cols,
+  // }
+  // const hasPieceEnemy = getCellPropieties(matrix)
+  // const hasPieceEnemy = '';
+};
 
 const checkPlayerTurn = (cellPropieties, turn) => {
   const { playerOne } = turn;
@@ -97,12 +120,18 @@ const checkPlayerTurn = (cellPropieties, turn) => {
   return playerOne
     ? cellPropieties.isFilledWithPlayerOne
     : cellPropieties.isFilledWithPlayertwo;
-}
+};
+
+// const getIntermedialCell = (startProps, endProps) => {
+//   const checkPlayerTurn = '';
+// }
 
 const getNextTurn = (turn) => {
   const { playerOne, playerTwo } = turn;
 
-  return { ...turn, playerOne: !playerOne, playerTwo: !playerTwo }
-}
+  return { ...turn, playerOne: !playerOne, playerTwo: !playerTwo };
+};
 
-export { startGame, generateMatrix, getCellPropieties, checkValidMove, getNextTurn, setCellPropieties, setCellsPropieties, setAttempToMove };
+export {
+  startGame, generateMatrix, getCellPropieties, checkValidMove, getNextTurn, setCellPropieties, setCellsPropieties, setAttempToMove,
+};

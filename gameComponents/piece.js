@@ -1,22 +1,60 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+/* eslint-disable no-use-before-define */
+/* eslint-disable react/require-default-props */
+/* eslint-disable react/jsx-filename-extension */
 
-const Piece = ({ isPressed, isFilledWithPlayerOne, isFilledWithPlayertwo }) => {
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
+import { Animated, StyleSheet, View } from 'react-native';
+
+const Piece = ({ isPressed, isFilledWithPlayerOne, isFilledWithPlayerTwo }) => {
+  const [enlarge] = useState(new Animated.Value(1));
+  const [spinValue] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    if (isPressed) {
+      Animated.parallel([
+        Animated.timing(enlarge, {
+          toValue: 1.3,
+          duration: 150,
+        }),
+        Animated.timing(spinValue, {
+          toValue: '360deg',
+          duration: 1500,
+        }),
+      ]).start(() => {});
+    } else {
+      Animated.timing(enlarge, {
+        toValue: 1,
+        duration: 0,
+      }).start();
+    }
+  }, [isPressed]);
+
+  const animatedStyle = {
+    transform: [
+      {
+        scale: enlarge,
+        rotate: spinValue,
+      },
+    ],
+  };
+
   return (
-    <View style={[
+    <Animated.View style={[
       styles.piece,
       isFilledWithPlayerOne ? styles.piecePlayerOne : null,
-      isFilledWithPlayertwo ? styles.piecePlayerTwo : null,
-      isPressed ? styles.pieceIsPressed : null,
-    ]}>
+      isFilledWithPlayerTwo ? styles.piecePlayerTwo : null,
+      animatedStyle,
+    ]}
+    >
       <View style={[
         styles.pieceCenter,
         isFilledWithPlayerOne ? styles.pieceCenterPlayerOne : null,
-        isFilledWithPlayertwo ? styles.pieceCenterPlayerTwo : null,
-      ]} />
-    </View>
-  )
+        isFilledWithPlayerTwo ? styles.pieceCenterPlayerTwo : null,
+      ]}
+      />
+    </Animated.View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -48,16 +86,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#750005',
   },
   pieceIsPressed: {
-    width: 40,
+    transform: 'scale(0.7)',
   },
 });
 
 Piece.propTypes = {
   isPressed: PropTypes.bool,
   isFilledWithPlayerOne: PropTypes.bool,
-  isFilledWithPlayertwo: PropTypes.bool,
+  isFilledWithPlayerTwo: PropTypes.bool,
 };
 
 export default Piece;
-
-

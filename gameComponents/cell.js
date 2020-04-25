@@ -1,48 +1,51 @@
-import React, { useContext } from 'react';
+/* eslint-disable no-use-before-define */
+/* eslint-disable react/jsx-filename-extension */
+/* eslint-disable react/require-default-props */
+
+import React, { useEffect, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import Piece from './piece';
 
-import { GameStatus } from '../gameContext';
-
-const Cell = (propieties) => {
-  const [gameStatus, setGameStatus] = useContext(GameStatus)
-  const { attempToMove } = gameStatus;
-
+const Cell = ({ propieties, handler }) => {
   const {
     row,
     col,
     isEmpty,
     isFilledWithPlayerOne,
-    isFilledWithPlayertwo,
+    isFilledWithPlayerTwo,
     isPressed,
-  } = propieties
+  } = propieties;
 
-  const actionMove = attempToMove ? 'move' : 'selected';
+  const isEvenCol = ((col % 2) === 0);
+  const isEvenRow = ((row % 2) === 0);
 
-  const payload = propieties;
 
-  const isEvenCol = ((col % 2) == 0);
-  const isEvenRow = ((row % 2) == 0);
-
+  useEffect(() => {
+    console.log("RE RENDER");
+  });
 
   return (
-    isEvenRow ?
+    <TouchableOpacity onPress={() => handler(propieties)}>
+      <View style={[styles.cell, getStyles(isEvenRow, isEvenCol)]}>
+        {!isEmpty
+          && (
+            <Piece
+              isPressed={isPressed}
+              isFilledWithPlayerOne={isFilledWithPlayerOne}
+              isFilledWithPlayerTwo={isFilledWithPlayerTwo}
+            />
+          )}
+      </View>
+    </TouchableOpacity>
+  );
+};
 
-      <TouchableOpacity onPress={() => setGameStatus({ type: actionMove, payload })}>
-        <View style={[styles.cell, isEvenCol ? styles.evenBackground : styles.oddBackground]} >
-          {!isEmpty && (<Piece isPressed={isPressed} isFilledWithPlayerOne={isFilledWithPlayerOne} isFilledWithPlayertwo={isFilledWithPlayertwo} />)}
-        </View>
-      </TouchableOpacity>
-      :
-
-      <TouchableOpacity onPress={() => setGameStatus({ type: actionMove, payload })}>
-        <View style={[styles.cell, isEvenCol ? styles.oddBackground : styles.evenBackground]} >
-          {!isEmpty && (<Piece isPressed={isPressed} isFilledWithPlayerOne={isFilledWithPlayerOne} isFilledWithPlayertwo={isFilledWithPlayertwo} />)}
-        </View>
-      </TouchableOpacity>
-
-
-  )
+const getStyles = (isEvenRow, isEvenCol) => {
+  if (isEvenRow) {
+    return isEvenCol ? styles.evenBackground : styles.oddBackground;
+  }
+  return isEvenCol ? styles.oddBackground : styles.evenBackground;
 };
 
 const styles = StyleSheet.create({
@@ -61,7 +64,47 @@ const styles = StyleSheet.create({
   },
   oddBackground: {
     backgroundColor: '#000',
-  }
+  },
 });
+
+Cell.propTypes = {
+  propieties: PropTypes.shape({
+    row: PropTypes.number,
+    col: PropTypes.number,
+    isEmpty: PropTypes.bool,
+    isFilledWithPlayerOne: PropTypes.bool,
+    isFilledWithPlayerTwo: PropTypes.bool,
+    isPressed: PropTypes.bool,
+  }),
+  handler: PropTypes.func,
+};
+
+const areEqual = (prevProps, nextProps) => {
+  const {
+    isFilledWithPlayerOne: prevIsFilledWithPlayerOne,
+    isFilledWithPlayerTwo: prevIsFilledWithPlayerTwo,
+    isEmpty: prevIsEmpty,
+    isPressed: prevIsPressed,
+    row, col,
+  } = prevProps.propieties;
+  const {
+    isFilledWithPlayerOne: nextIsFilledWithPlayerOne,
+    isFilledWithPlayerTwo: nextIsFilledWithPlayerTwo,
+    isEmpty: nextIsEmpty,
+    isPressed: nextIsPressed,
+  } = nextProps.propieties;
+
+  const changeCellByPlayerOne = prevIsFilledWithPlayerOne === nextIsFilledWithPlayerOne;
+  const changeCellbyPlayerTwo = prevIsFilledWithPlayerTwo === nextIsFilledWithPlayerTwo;
+  const changeCellPressed = prevIsPressed === nextIsPressed;
+  const changeCellEmpty = prevIsEmpty === nextIsEmpty;
+
+  if (row === 3 && col === 6) console.log({ prevProps, nextProps });
+
+  return changeCellByPlayerOne
+    && changeCellbyPlayerTwo
+    && changeCellPressed
+    && changeCellEmpty;
+};
 
 export default Cell;

@@ -1,49 +1,114 @@
+/* eslint-disable react/jsx-filename-extension */
 import React, { createContext, useReducer } from 'react';
-import { startGame, setCellsPropieties, checkValidMove, getNextTurn } from './gameMethods';
+import generateMatrix from './utils/boardMethods';
+import { setCellsPropieties, setCellPropieties, getIntermedialCell } from './utils/cellMethods';
+import { checkValidMove, getNextTurn, detectMove, restPiece } from './utils/gameRules';
 
 function GameReducer(state, action) {
-  const { isEmpty } = action.payload;
+  const { board, turn, attempToMove } = state;
+  const { type, payload } = action;
+  const { isEmpty } = payload;
+  const nexTurn = getNextTurn(turn);
 
-  switch (action.type) {
-
+  switch (type) {
     case 'selected': {
-      console.log("SELECTED");
+      console.log('#SELECTED');
 
-      const attempToMove = !isEmpty && action.payload;
+      if (attempToMove && !isEmpty) {
+        return state;
+      }
+      const newBoard = setCellPropieties(board, {
+        ...payload,
+        isPressed: true,
+      });
+      const newAttempToMove = { ...payload };
 
-      return { ...state, attempToMove };
+      return { ...state, board: newBoard, attempToMove: newAttempToMove };
     }
-    case 'move': {
-      console.log("MOVE");
-
-      const { board, turn, attempToMove } = state;
-
-      const isAValidMove = checkValidMove(attempToMove, action.payload, turn);
+    case 'simple-under': {
+      console.log('#SIMPLE-UNDER');
+      const move = detectMove(attempToMove, payload, false);
+      const isAValidMove = checkValidMove(attempToMove, payload, turn, move);
 
       if (!isAValidMove) {
-        return { ...state, attempToMove: false }
+        console.log('INVALID MOVE');
+
+        const resetedBoard = setCellPropieties(board, {
+          ...attempToMove,
+          isPressed: false,
+        });
+        return {
+          ...state, board: resetedBoard, attempToMove: false,
+        };
       }
 
-      // Grab the board removing the piece of the cell 
+      // Grab the board removing the piece of the cell
       // then generate a new board with the new move
       const newBoard = setCellsPropieties(board, [
         {
           ...attempToMove,
           isEmpty: true,
           isFilledWithPlayerOne: false,
-          isFilledWithPlayertwo: false
+          isFilledWithPlayerTwo: false,
+          isPressed: false,
         },
         {
-          ...action.payload,
+          ...payload,
           isEmpty: false,
           isFilledWithPlayerOne: turn.playerOne,
-          isFilledWithPlayertwo: turn.playerTwo,
-        }
-      ])
+          isFilledWithPlayerTwo: turn.playerTwo,
+          isPressed: false,
+        },
+      ]);
 
-      const nexTurn = getNextTurn(turn);
+      return {
+        ...state, board: newBoard, attempToMove: false, turn: nexTurn,
+      };
+    }
+    case 'doble-under': {
+      const move = detectMove(attempToMove, payload, true);
+      const intermedialCell = getIntermedialCell(move, attempToMove, board);
+      const isAValidMove = checkValidMove(
+        attempToMove,
+        payload,
+        turn,
+        move,
+        true,
+        !intermedialCell.isEmpty,
+      );
 
-      return { ...state, board: newBoard, attempToMove: false, turn: nexTurn };
+      if (!isAValidMove) {
+        return { ...state, attempToMove: false };
+      }
+
+      const newBoard = setCellsPropieties(board, [
+        {
+          ...attempToMove,
+          isEmpty: true,
+          isFilledWithPlayerOne: false,
+          isFilledWithPlayerTwo: false,
+        },
+        {
+          ...intermedialCell,
+          isEmpty: true,
+          isFilledWithPlayerOne: false,
+          isFilledWithPlayerTwo: false,
+        },
+        {
+          ...payload,
+          isEmpty: false,
+          isFilledWithPlayerOne: turn.playerOne,
+          isFilledWithPlayerTwo: turn.playerTwo,
+        },
+      ]);
+
+      return {
+        ...state,
+        board: newBoard,
+        attempToMove: false,
+        turn: nexTurn,
+        pieces: restPiece(turn, state.pieces),
+      };
     }
     default: {
       return state;
@@ -51,17 +116,21 @@ function GameReducer(state, action) {
   }
 }
 
-
 const matrixColumns = 8;
 const matrixRows = 8;
 
 const gameInitalStatus = {
-  board: startGame(matrixRows, matrixColumns),
+  board: generateMatrix(matrixRows, matrixColumns),
   attempToMove: false,
   turn: {
     playerOne: true,
     playerTwo: false,
   },
+  pieces: {
+    playerOne: 16,
+    playerTwo: 16,
+  },
+  hasWinning: false,
 };
 
 const GameStatus = createContext(gameInitalStatus);
