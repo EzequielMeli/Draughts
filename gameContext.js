@@ -2,7 +2,7 @@
 import React, { createContext, useReducer } from 'react';
 import generateMatrix from './utils/boardMethods';
 import { setCellsPropieties, setCellPropieties, getIntermedialCell } from './utils/cellMethods';
-import { checkValidMove, getNextTurn, detectMove, restPiece } from './utils/gameRules';
+import { checkValidMove, checkPlayerTurn, checkHasAvailableEatPiece, getNextTurn, detectMove, restPiece } from './utils/gameRules';
 
 function GameReducer(state, action) {
   const { board, turn, attempToMove } = state;
@@ -11,10 +11,11 @@ function GameReducer(state, action) {
   const nexTurn = getNextTurn(turn);
 
   switch (type) {
+    case 'end-game': { return payload; }
     case 'selected': {
-      console.log('#SELECTED');
-
-      if (attempToMove && !isEmpty) {
+      // console.log('#SELECTED');
+      const isNotCorrectTurn = !checkPlayerTurn(payload, turn);
+      if ((attempToMove && !isEmpty) || isNotCorrectTurn) {
         return state;
       }
       const newBoard = setCellPropieties(board, {
@@ -22,17 +23,21 @@ function GameReducer(state, action) {
         isPressed: true,
       });
       const newAttempToMove = { ...payload };
-
       return { ...state, board: newBoard, attempToMove: newAttempToMove };
     }
     case 'simple-under': {
-      console.log('#SIMPLE-UNDER');
+      // console.log('#SIMPLE-UNDER');
       const move = detectMove(attempToMove, payload, false);
-      const isAValidMove = checkValidMove(attempToMove, payload, turn, move);
+      const isAValidMove = checkValidMove({
+        mx: board,
+        startCellProps: attempToMove,
+        endCellProps: payload,
+        turn,
+        move
+      });
 
       if (!isAValidMove) {
-        console.log('INVALID MOVE');
-
+        // console.log('INVALID MOVE');
         const resetedBoard = setCellPropieties(board, {
           ...attempToMove,
           isPressed: false,
@@ -68,17 +73,24 @@ function GameReducer(state, action) {
     case 'doble-under': {
       const move = detectMove(attempToMove, payload, true);
       const intermedialCell = getIntermedialCell(move, attempToMove, board);
-      const isAValidMove = checkValidMove(
-        attempToMove,
-        payload,
+      const isAValidMove = checkValidMove({
+        mx: board,
+        startCellProps: attempToMove,
+        endCellProps: payload,
         turn,
         move,
-        true,
-        !intermedialCell.isEmpty,
-      );
+        isDobleUnder: true,
+        intermedialCell,
+      });
 
       if (!isAValidMove) {
-        return { ...state, attempToMove: false };
+        const resetedBoard = setCellPropieties(board, {
+          ...attempToMove,
+          isPressed: false,
+        });
+        return {
+          ...state, board: resetedBoard, attempToMove: false,
+        };
       }
 
       const newBoard = setCellsPropieties(board, [
@@ -127,11 +139,13 @@ const gameInitalStatus = {
     playerTwo: false,
   },
   pieces: {
-    playerOne: 16,
-    playerTwo: 16,
+    playerOne: 12,
+    playerTwo: 12,
   },
   hasWinning: false,
+  winning: '',
 };
+
 
 const GameStatus = createContext(gameInitalStatus);
 

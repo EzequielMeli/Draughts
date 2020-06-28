@@ -1,3 +1,4 @@
+
 const getBaseCellPropieties = (row, col) => ({
   row,
   col,
@@ -7,17 +8,18 @@ const getBaseCellPropieties = (row, col) => ({
   isPressed: false,
 });
 
+const isCellInTheBoundry = (row, col, mxLength) => {
+  if (row < 0 || row >= mxLength) {
+    return false;
+  }
+  if (col < 0 || col >= mxLength) {
+    return false;
+  }
+  return true;
+}
+
 const getCellPropieties = (mx, row, col) => {
-  const isNotPositiveRow = row < 0;
-  const isNotValidNumberRow = row >= mx.length;
-  const isNotPositiveCol = col < 0;
-  const isNotValidNumberCol = col >= mx.length;
-  if (isNotPositiveRow
-    || isNotPositiveCol
-    || isNotValidNumberCol
-    || isNotValidNumberRow
-  ) return false;
-  return mx[row][col];
+  return isCellInTheBoundry && mx[row][col];
 };
 
 const getIntermedialCell = (move, startCellProps, matrix) => {
@@ -39,6 +41,7 @@ const setCellPropieties = (mx, cellPropieties) => {
   newMatrix[row][col] = cellPropieties;
   return newMatrix;
 };
+
 const setCellsPropieties = (mx, cellsPropieties) => {
   const newMatrix = [...mx];
   cellsPropieties.forEach((cellProps) => {
@@ -49,6 +52,7 @@ const setCellsPropieties = (mx, cellsPropieties) => {
 };
 
 export {
+  isCellInTheBoundry,
   getBaseCellPropieties,
   getCellPropieties,
   getIntermedialCell,
