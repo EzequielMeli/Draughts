@@ -4,7 +4,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import Piece from './piece';
 
 const Cell = ({ propieties, handler }) => {
@@ -28,6 +28,7 @@ const Cell = ({ propieties, handler }) => {
   return (
     <TouchableOpacity onPress={() => handler(propieties)}>
       <View style={[styles.cell, getStyles(isEvenRow, isEvenCol)]}>
+        <Text style={styles.text} >{`${row} ${col}`} </Text>
         {!isEmpty
           && (
             <Piece
@@ -56,8 +57,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     width: 50,
     height: 50,
-    margin: 5,
-    borderRadius: 10,
   },
   evenBackground: {
     backgroundColor: '#F4B266',
@@ -65,6 +64,11 @@ const styles = StyleSheet.create({
   oddBackground: {
     backgroundColor: '#000',
   },
+  text: {
+    color: 'white',
+    alignSelf: 'center',
+    fontSize: '8px',
+  }
 });
 
 Cell.propTypes = {

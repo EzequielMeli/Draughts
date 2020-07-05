@@ -2,7 +2,7 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-filename-extension */
 
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import StatusMessage from './statusMessage';
 import Cell from './cell';
@@ -16,21 +16,31 @@ const Board = () => {
     attempToMove,
     turn,
     pieces,
+    hasWinning,
+    winning,
   } = gameStatus;
 
   const handleCellPress = (propieties) => {
     const actionToMove = getActionToMove(propieties, attempToMove);
-    console.log('ejectuto handler', { propieties, attempToMove });
     setGameStatus({ type: actionToMove, payload: propieties });
   };
 
+  useEffect(() => {
+    const { playerOne: pieceP1, playerTwo: pieceP2 } = pieces;
+    const playerOneWin = pieceP2 === 0;
+    const playerTwoWin = pieceP1 === 0;
+    if (playerOneWin || playerTwoWin) {
+      const winning = playerOneWin ? 'playerOne' : 'playerTwo';
+      setGameStatus({ type: 'end-game', payload: { ...gameStatus, hasWinning: true, winning } });
+    }
+  }, [pieces]);
+
   return (
     <View>
-      <StatusMessage turn={turn} pieces={pieces} />
-
+      <StatusMessage turn={turn} pieces={pieces} hasWinning={hasWinning} winning={winning} />
       {board && (
         <View style={styles.board}>
-          {board && board.map((row) => (
+          {board.map((row) => (
             <View key={`row${row[0].row}`} style={styles.row}>
               {row.map((propieties) => (
                 <Cell

@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-filename-extension */
@@ -6,12 +7,22 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 
-const StatusMessage = ({ turn, pieces }) => (
+const StatusMessage = ({ turn, pieces, hasWinning, winning }) => (
   <View>
     <Text style={[styles.textTurn, turn.playerOne ? styles.colorPlayerOne : styles.colorPlayerTwo]}>
       Is turn of
-      {turn.playerOne ? ' Player one ' : ' Player two '}
-      pieces player one
+      {turn.playerOne ? ' player one ' : ' player two '}
+      {hasWinning
+        && (
+          <View>
+            <Text>
+              Congrats
+              {winning}
+              {' '}
+              you won!
+            </Text>
+          </View>
+        )}
     </Text>
     <Text>
       pieces player one:
@@ -33,6 +44,8 @@ StatusMessage.propTypes = {
     playerOne: PropTypes.number,
     playerTwo: PropTypes.number,
   }).isRequired,
+  hasWinning: PropTypes.bool,
+  winning: PropTypes.string,
 };
 
 const styles = StyleSheet.create({
