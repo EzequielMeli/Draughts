@@ -63,18 +63,29 @@ const checkValidMove = ({ mx, startCellProps, endCellProps, turn, move, isDobleU
 
   const isEmptyCellEnd = endCellProps.isEmpty;
   const isCorrectTurn = checkPlayerTurn(startCellProps, turn);
-  const hasNotAvailibleEatingPice = checkHasNotAvailableEatPiece({ mx, turn, endCellProps });
-  return isEmptyCellEnd && isDiagonalValidMove && isCorrectTurn && hasNotAvailibleEatingPice;
+  const availableEatPiece = getAvailableEatPiece({ mx, turn });
+  const hasNotAvailableEatingPiece = checkHasNotAvailableEatPiece({ availableEatPiece, endCellProps });
+  return isEmptyCellEnd && isDiagonalValidMove && isCorrectTurn && hasNotAvailableEatingPiece;
 };
 
-const getNextTurn = (turn) => {
+const getNextTurn = ({ mx, turn }) => {
+  if (getAvailableEatPiece(mx, turn)) {
+    return { playerOne: playerOne, playerTwo: playerTwo };
+  }
   const { playerOne, playerTwo } = turn;
   return { playerOne: !playerOne, playerTwo: !playerTwo };
 };
 
+const checkHasNotAvailableEatPiece = ({ validPlaces, endCellProps }) => {
+  if (validPlaces.length > 0) {
+    const { col, row } = endCellProps;
+    const hasCorrectMove = validPlaces.find(element => element.col === col && element.row === row);
+    return Boolean(hasCorrectMove);
+  }
+  return true;
+};
 
-
-const checkHasNotAvailableEatPiece = ({ mx, turn, endCellProps }) => {
+const getAvailableEatPiece = ({ mx, turn }) => {
   const validPlaces = [];
   mx.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
@@ -106,7 +117,6 @@ const checkHasNotAvailableEatPiece = ({ mx, turn, endCellProps }) => {
         if (hasRightDiagonalEnemy && hasDobleRightDiagonalEmpty) validPlaces.push({ row: rowIndex + 2, col: colIndex + 2 })
 
       } else if (turn.playerTwo && cell.isFilledWithPlayerTwo) {
-        console.log("PLATER DOS TURNO");
         hasLeftDiagonalEnemy =
           isCellInTheBoundry(rowIndex - 1, colIndex - 1, mx.length)
           && mx[rowIndex - 1][colIndex - 1].isFilledWithPlayerOne;
@@ -130,12 +140,7 @@ const checkHasNotAvailableEatPiece = ({ mx, turn, endCellProps }) => {
     });
   });
 
-  if (validPlaces.length > 0) {
-    const { col, row } = endCellProps;
-    const hasCorrectMove = validPlaces.find(element => element.col === col && element.row === row);
-    return Boolean(hasCorrectMove);
-  }
-  return true;
+  return validPlaces;
 };
 
 const restPiece = (turn, piece) => (
@@ -147,6 +152,7 @@ const restPiece = (turn, piece) => (
 export {
   checkValidMove,
   checkPlayerTurn,
+  getAvailableEatPiece,
   getNextTurn,
   detectMove,
   restPiece,

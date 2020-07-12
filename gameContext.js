@@ -2,7 +2,7 @@
 import React, { createContext, useReducer } from 'react';
 import generateMatrix from './utils/boardMethods';
 import { setCellsPropieties, setCellPropieties, getIntermedialCell } from './utils/cellMethods';
-import { checkValidMove, checkPlayerTurn, checkHasAvailableEatPiece, getNextTurn, detectMove, restPiece } from './utils/gameRules';
+import { checkValidMove, checkPlayerTurn, getNextTurn, detectMove, restPiece } from './utils/gameRules';
 
 function GameReducer(state, action) {
   const { board, turn, attempToMove } = state;
